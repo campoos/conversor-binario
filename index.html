@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor de Texto e Áudio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f9;
+        }
+        .tab-button.active {
+            border-bottom: 2px solid #1a73e8;
+            color: #1a73e8;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 sm:p-6 md:p-8">
+
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden">
+        <div class="p-4 sm:p-6 md:p-8">
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-2">Conversor de Mensagens Binárias</h1>
+            <p class="text-gray-500 mb-6 text-sm sm:text-base">Converta texto para áudio binário e vice-versa, com um design simples e intuitivo.</p>
+        </div>
+
+        <!-- Tab Buttons -->
+        <div class="flex border-b border-gray-200 text-sm sm:text-base">
+            <button id="tab-text-to-audio" class="tab-button active flex-1 py-4 px-2 sm:px-4 text-center text-gray-600 transition duration-300 ease-in-out hover:bg-gray-100 focus:outline-none">
+                Texto para Áudio
+            </button>
+            <button id="tab-audio-to-text" class="tab-button flex-1 py-4 px-2 sm:px-4 text-center text-gray-600 transition duration-300 ease-in-out hover:bg-gray-100 focus:outline-none">
+                Áudio para Texto
+            </button>
+            <button id="tab-speech-to-binary" class="tab-button flex-1 py-4 px-2 sm:px-4 text-center text-gray-600 transition duration-300 ease-in-out hover:bg-gray-100 focus:outline-none">
+                Fala para Binário
+            </button>
+        </div>
+
+        <!-- Content Area -->
+        <div id="content-area" class="p-4 sm:p-6 md:p-8">
+
+            <!-- Texto para Áudio Tab -->
+            <div id="text-to-audio-content" class="tab-content">
+                <textarea id="text-input" class="w-full h-32 p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4" placeholder="Digite seu texto aqui..."></textarea>
+
+                <div class="flex space-x-4 mb-4">
+                    <button id="convert-text-btn" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold shadow-md hover:bg-blue-700 transition duration-300 ease-in-out">
+                        <span id="convert-text-btn-text">Converter</span>
+                        <div id="convert-text-spinner" class="hidden inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status"></div>
+                    </button>
+                </div>
+
+                <div id="text-audio-player-container" class="mt-4 hidden p-4 bg-gray-100 rounded-lg">
+                    <p class="text-sm font-semibold text-gray-700 mb-2">Pré-visualizar e Baixar</p>
+                    <audio id="text-to-audio-player" class="w-full" controls></audio>
+                    <a id="download-link" href="#" class="w-full text-center mt-4 block py-3 bg-green-600 text-white rounded-lg font-semibold shadow-md hover:bg-green-700 transition duration-300 ease-in-out">
+                        Baixar Arquivo .wav
+                    </a>
+                </div>
+                
+                <div id="text-to-audio-message" class="mt-4 text-center text-sm text-gray-600"></div>
+            </div>
+
+            <!-- Áudio para Texto Tab -->
+            <div id="audio-to-text-content" class="tab-content hidden">
+                <div class="flex items-center justify-center w-full mb-4">
+                    <label for="audio-upload" class="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition duration-300 ease-in-out">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <svg class="w-8 h-8 mb-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.207l-.007-.007A5.002 5.002 0 0 0 6 2a5.002 5.002 0 0 0-4.041 8.528l.006.006A4.996 4.996 0 0 0 2 13h2.5L2 13z"/>
+                            </svg>
+                            <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Clique para fazer upload</span> ou arraste e solte</p>
+                            <p class="text-xs text-gray-500">Apenas arquivos .WAV</p>
+                        </div>
+                        <input id="audio-upload" type="file" accept="audio/wav" class="hidden" />
+                    </label>
+                </div>
+
+                <div id="audio-input-player-container" class="mt-4 hidden p-4 bg-gray-100 rounded-lg">
+                    <p class="text-sm font-semibold text-gray-700 mb-2">Áudio selecionado</p>
+                    <audio id="audio-to-text-player" class="w-full" controls></audio>
+                </div>
+
+                <button id="convert-audio-btn" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold shadow-md hover:bg-blue-700 transition duration-300 ease-in-out" disabled>
+                    <span id="convert-audio-btn-text">Converter</span>
+                    <div id="convert-audio-spinner" class="hidden inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status"></div>
+                </button>
+
+                <div id="audio-output-container" class="mt-4 hidden p-4 bg-gray-100 rounded-lg">
+                    <p class="text-sm font-semibold text-gray-700">Texto Decodificado:</p>
+                    <pre id="decoded-text" class="mt-2 text-gray-800 whitespace-pre-wrap"></pre>
+                    <div id="decoded-binary-container" class="mt-4 p-4 bg-gray-200 rounded-lg">
+                        <p class="text-sm font-semibold text-gray-700">Bits Decodificados:</p>
+                        <pre id="decoded-binary" class="mt-2 text-gray-800"></pre>
+                    </div>
+                </div>
+                
+                <div id="audio-to-text-message" class="mt-4 text-center text-sm text-gray-600"></div>
+            </div>
+
+            <!-- Fala para Binário Tab -->
+            <div id="speech-to-binary-content" class="tab-content hidden">
+                <div class="flex flex-col items-center justify-center p-4">
+                    <p class="text-center text-gray-600 mb-4 text-sm" id="speech-status">Clique no botão para começar a falar.</p>
+                    <button id="start-speech-btn" class="bg-red-600 text-white p-4 rounded-full font-semibold shadow-md hover:bg-red-700 transition duration-300 ease-in-out transform hover:scale-105">
+                        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg>
+                    </button>
+                    <button id="stop-speech-btn" class="hidden bg-gray-600 text-white p-4 rounded-full font-semibold shadow-md hover:bg-gray-700 transition duration-300 ease-in-out transform hover:scale-105 mt-2">
+                        Parar
+                    </button>
+                </div>
+
+                <div id="speech-output-container" class="mt-4 hidden p-4 bg-gray-100 rounded-lg">
+                    <p class="text-sm font-semibold text-gray-700">Texto Reconhecido:</p>
+                    <pre id="recognized-text" class="mt-2 text-gray-800 whitespace-pre-wrap"></pre>
+                    <div id="speech-binary-container" class="mt-4 p-4 bg-gray-200 rounded-lg">
+                        <p class="text-sm font-semibold text-gray-700">Bits Gerados:</p>
+                        <pre id="generated-binary" class="mt-2 text-gray-800"></pre>
+                    </div>
+                </div>
+                
+                <div id="speech-download-container" class="mt-4 hidden p-4 bg-gray-100 rounded-lg">
+                    <a id="speech-download-link" href="#" class="w-full text-center mt-4 block py-3 bg-green-600 text-white rounded-lg font-semibold shadow-md hover:bg-green-700 transition duration-300 ease-in-out">
+                        Baixar Áudio Binário (.wav)
+                    </a>
+                </div>
+
+                <div id="speech-message" class="mt-4 text-center text-sm text-gray-600"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        const SAMPLE_RATE = 44100;
+        const FREQUENCY_HIGH = 1000; // Represents a '1' bit
+        const FREQUENCY_LOW = 500;   // Represents a '0' bit
+        const DURATION_PER_BIT_S = 0.1;
+        const DURATION_PER_BIT_MS = DURATION_PER_BIT_S * 1000;
+        const AMPLITUDE = 0.5;
+
+        // UI elements
+        const tabTextToAudioBtn = document.getElementById('tab-text-to-audio');
+        const tabAudioToTextBtn = document.getElementById('tab-audio-to-text');
+        const tabSpeechToBinaryBtn = document.getElementById('tab-speech-to-binary');
+        const textToAudioContent = document.getElementById('text-to-audio-content');
+        const audioToTextContent = document.getElementById('audio-to-text-content');
+        const speechToBinaryContent = document.getElementById('speech-to-binary-content');
+        const textInput = document.getElementById('text-input');
+        const convertTextBtn = document.getElementById('convert-text-btn');
+        const textToAudioPlayerContainer = document.getElementById('text-audio-player-container');
+        const textToAudioPlayer = document.getElementById('text-to-audio-player');
+        const downloadLink = document.getElementById('download-link');
+        const textToAudioMessage = document.getElementById('text-to-audio-message');
+        const audioUploadInput = document.getElementById('audio-upload');
+        const audioInputPlayerContainer = document.getElementById('audio-input-player-container');
+        const audioToTextPlayer = document.getElementById('audio-to-text-player');
+        const convertAudioBtn = document.getElementById('convert-audio-btn');
+        const decodedTextPre = document.getElementById('decoded-text');
+        const audioToTextContainer = document.getElementById('audio-output-container');
+        const audioToTextMessage = document.getElementById('audio-to-text-message');
+        const decodedBinaryPre = document.getElementById('decoded-binary');
+        
+        const startSpeechBtn = document.getElementById('start-speech-btn');
+        const stopSpeechBtn = document.getElementById('stop-speech-btn');
+        const speechStatus = document.getElementById('speech-status');
+        const recognizedTextPre = document.getElementById('recognized-text');
+        const generatedBinaryPre = document.getElementById('generated-binary');
+        const speechOutputContainer = document.getElementById('speech-output-container');
+        const speechMessage = document.getElementById('speech-message');
+        const speechDownloadContainer = document.getElementById('speech-download-container');
+        const speechDownloadLink = document.getElementById('speech-download-link');
+        
+        let audioContext = null;
+        let speechRecognition = null;
+
+        // --- Tab Switching Logic ---
+        function showTab(tabId) {
+            const tabs = [textToAudioContent, audioToTextContent, speechToBinaryContent];
+            const buttons = [tabTextToAudioBtn, tabAudioToTextBtn, tabSpeechToBinaryBtn];
+
+            tabs.forEach(tab => tab.classList.add('hidden'));
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            if (tabId === 'text-to-audio') {
+                textToAudioContent.classList.remove('hidden');
+                tabTextToAudioBtn.classList.add('active');
+            } else if (tabId === 'audio-to-text') {
+                audioToTextContent.classList.remove('hidden');
+                tabAudioToTextBtn.classList.add('active');
+            } else if (tabId === 'speech-to-binary') {
+                speechToBinaryContent.classList.remove('hidden');
+                tabSpeechToBinaryBtn.classList.add('active');
+            }
+        }
+        tabTextToAudioBtn.addEventListener('click', () => showTab('text-to-audio'));
+        tabAudioToTextBtn.addEventListener('click', () => showTab('audio-to-text'));
+        tabSpeechToBinaryBtn.addEventListener('click', () => showTab('speech-to-binary'));
+
+        // --- Utility Functions ---
+        function textToBinary(text) {
+            return text.split('').map(char => {
+                const binary = char.charCodeAt(0).toString(2);
+                return binary.padStart(8, '0');
+            }).join('');
+        }
+
+        async function createAudioBuffer(binaryString) {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: SAMPLE_RATE });
+            }
+
+            const totalDuration = binaryString.length * DURATION_PER_BIT_S;
+            const numFrames = Math.floor(audioContext.sampleRate * totalDuration);
+            const audioBuffer = audioContext.createBuffer(1, numFrames, audioContext.sampleRate);
+            const channelData = audioBuffer.getChannelData(0);
+
+            let offset = 0;
+            const samplesPerBit = Math.floor(audioContext.sampleRate * DURATION_PER_BIT_S);
+            const timeStep = 1 / audioContext.sampleRate;
+
+            for (let i = 0; i < binaryString.length; i++) {
+                const bit = binaryString[i];
+                const freq = bit === '1' ? FREQUENCY_HIGH : FREQUENCY_LOW;
+                
+                for (let j = 0; j < samplesPerBit; j++) {
+                    const sample = Math.sin(2 * Math.PI * freq * (j * timeStep)) * AMPLITUDE;
+                    channelData[offset++] = sample;
+                }
+            }
+
+            return audioBuffer;
+        }
+
+        function audioBufferToWav(audioBuffer) {
+            const numChannels = audioBuffer.numberOfChannels;
+            const sampleRate = audioBuffer.sampleRate;
+            const numFrames = audioBuffer.length;
+            
+            const buffer = new ArrayBuffer(44 + numFrames * numChannels * 2);
+            const view = new DataView(buffer);
+            const channelData = audioBuffer.getChannelData(0);
+
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + numFrames * numChannels * 2, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * numChannels * 2, true);
+            view.setUint16(32, numChannels * 2, true);
+            view.setUint16(34, 16, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, numFrames * numChannels * 2, true);
+
+            let offset = 44;
+            for (let i = 0; i < channelData.length; i++) {
+                const sample = Math.max(-1, Math.min(1, channelData[i]));
+                view.setInt16(offset, sample * 32767, true);
+                offset += 2;
+            }
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+        // --- Text to Audio Logic ---
+        convertTextBtn.addEventListener('click', async () => {
+            const text = textInput.value;
+            if (!text) {
+                textToAudioMessage.textContent = 'Por favor, insira um texto para converter.';
+                return;
+            }
+
+            textToAudioMessage.textContent = 'Gerando áudio...';
+            convertTextBtn.disabled = true;
+            document.getElementById('convert-text-btn-text').classList.add('hidden');
+            document.getElementById('convert-text-spinner').classList.remove('hidden');
+
+            try {
+                const binaryString = textToBinary(text);
+                const audioBuffer = await createAudioBuffer(binaryString);
+
+                const wavBlob = audioBufferToWav(audioBuffer);
+                const audioUrl = URL.createObjectURL(wavBlob);
+                textToAudioPlayer.src = audioUrl;
+                textToAudioPlayer.play();
+
+                textToAudioPlayerContainer.classList.remove('hidden');
+                downloadLink.href = audioUrl;
+                downloadLink.download = 'mensagem_binaria.wav';
+                
+                textToAudioMessage.textContent = 'Áudio gerado com sucesso!';
+
+            } catch (error) {
+                console.error('Erro na conversão:', error);
+                textToAudioMessage.textContent = 'Ocorreu um erro ao gerar o áudio. Por favor, tente novamente.';
+            } finally {
+                convertTextBtn.disabled = false;
+                document.getElementById('convert-text-btn-text').classList.remove('hidden');
+                document.getElementById('convert-text-spinner').classList.add('hidden');
+            }
+        });
+
+        // --- Audio to Text Logic ---
+        audioUploadInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.type !== 'audio/wav') {
+                    audioToTextMessage.textContent = 'Por favor, selecione um arquivo .wav válido.';
+                    convertAudioBtn.disabled = true;
+                    audioInputPlayerContainer.classList.add('hidden');
+                } else {
+                    audioToTextMessage.textContent = `Arquivo selecionado: ${file.name}`;
+                    convertAudioBtn.disabled = false;
+                    
+                    const audioUrl = URL.createObjectURL(file);
+                    audioToTextPlayer.src = audioUrl;
+                    audioInputPlayerContainer.classList.remove('hidden');
+                }
+            }
+        });
+
+        convertAudioBtn.addEventListener('click', async () => {
+            const file = audioUploadInput.files[0];
+            if (!file) {
+                audioToTextMessage.textContent = 'Por favor, selecione um arquivo de áudio.';
+                return;
+            }
+            
+            audioToTextPlayer.play();
+
+            audioToTextMessage.textContent = 'Decodificando áudio...';
+            convertAudioBtn.disabled = true;
+            document.getElementById('convert-audio-btn-text').classList.add('hidden');
+            document.getElementById('convert-audio-spinner').classList.remove('hidden');
+            audioToTextContainer.classList.add('hidden');
+
+            try {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const arrayBuffer = e.target.result;
+                    if (!audioContext) {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    
+                    const decodedAudioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                    const channelData = decodedAudioBuffer.getChannelData(0);
+                    
+                    const samplesPerBit = Math.floor(SAMPLE_RATE * DURATION_PER_BIT_S);
+                    const halfBitSamples = Math.floor(samplesPerBit / 2);
+                    let binaryString = '';
+
+                    for (let i = 0; i < channelData.length; i += samplesPerBit) {
+                        // Check if we have a full bit's worth of samples
+                        if (i + samplesPerBit > channelData.length) break;
+
+                        let highFreqEnergy = 0;
+                        let lowFreqEnergy = 0;
+                        
+                        // We will use a simple energy detection to determine the frequency
+                        // by comparing the energy of the first half of the bit against the second half
+                        // This assumes the frequency is constant within the bit period
+                        for(let j = 0; j < halfBitSamples; j++) {
+                            const highIdx = i + j;
+                            const lowIdx = i + halfBitSamples + j;
+                            if (highIdx < channelData.length) {
+                                highFreqEnergy += Math.abs(channelData[highIdx]);
+                            }
+                            if (lowIdx < channelData.length) {
+                                lowFreqEnergy += Math.abs(channelData[lowIdx]);
+                            }
+                        }
+
+                        // We can also use a simple FFT or Goertzel algorithm here for better accuracy,
+                        // but a simple energy comparison might be enough for a single-frequency signal.
+                        // Let's stick with the energy comparison for simplicity and to fix the immediate bug.
+                        // Let's reconsider. The original approach with correlation was also a form of energy detection.
+                        // The issue might be that the sample rate or duration is slightly off due to the upload process.
+                        // Let's try to directly find the peak frequency within the segment.
+
+                        // A more robust approach: cross-correlation with known sine waves
+                        let correlationHigh = 0;
+                        let correlationLow = 0;
+                        for (let j = 0; j < samplesPerBit; j++) {
+                            correlationHigh += channelData[i + j] * Math.sin(2 * Math.PI * FREQUENCY_HIGH * (j / SAMPLE_RATE));
+                            correlationLow += channelData[i + j] * Math.sin(2 * Math.PI * FREQUENCY_LOW * (j / SAMPLE_RATE));
+                        }
+
+                        if (Math.abs(correlationHigh) > Math.abs(correlationLow)) {
+                            binaryString += '1';
+                        } else {
+                            binaryString += '0';
+                        }
+                    }
+
+                    let decodedText = '';
+                    for (let i = 0; i < binaryString.length; i += 8) {
+                        const byte = binaryString.substring(i, i + 8);
+                        if (byte.length === 8) {
+                            decodedText += String.fromCharCode(parseInt(byte, 2));
+                        }
+                    }
+                    
+                    decodedTextPre.textContent = decodedText;
+                    decodedBinaryPre.textContent = binaryString;
+                    audioToTextContainer.classList.remove('hidden');
+                    audioToTextMessage.textContent = 'Decodificação completa!';
+                };
+                reader.readAsArrayBuffer(file);
+            } catch (error) {
+                audioToTextMessage.textContent = `Ocorreu um erro: ${error.message}`;
+                console.error(error);
+            } finally {
+                convertAudioBtn.disabled = false;
+                document.getElementById('convert-audio-btn-text').classList.remove('hidden');
+                document.getElementById('convert-audio-spinner').classList.add('hidden');
+            }
+        });
+        
+        // --- Speech to Binary Logic ---
+        let recognition = null;
+
+        if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'pt-BR';
+            recognition.continuous = true;
+            recognition.interimResults = false;
+        } else {
+            speechMessage.textContent = "Seu navegador não suporta a API de Reconhecimento de Fala.";
+            startSpeechBtn.disabled = true;
+        }
+
+        startSpeechBtn.addEventListener('click', () => {
+            if (recognition) {
+                recognition.start();
+                startSpeechBtn.classList.add('hidden');
+                stopSpeechBtn.classList.remove('hidden');
+                speechStatus.textContent = 'Ouvindo...';
+                speechOutputContainer.classList.add('hidden');
+                speechDownloadContainer.classList.add('hidden');
+                recognizedTextPre.textContent = '';
+                generatedBinaryPre.textContent = '';
+                speechMessage.textContent = '';
+            }
+        });
+
+        stopSpeechBtn.addEventListener('click', () => {
+            if (recognition) {
+                recognition.stop();
+                speechStatus.textContent = 'Reconhecimento de fala parado.';
+                startSpeechBtn.classList.remove('hidden');
+                stopSpeechBtn.classList.add('hidden');
+            }
+        });
+
+        recognition.onresult = async (event) => {
+            const transcript = event.results[event.results.length - 1][0].transcript;
+            const finalTranscript = transcript.trim();
+
+            if (finalTranscript) {
+                const binaryString = textToBinary(finalTranscript);
+                
+                recognizedTextPre.textContent = finalTranscript;
+                generatedBinaryPre.textContent = binaryString;
+                speechOutputContainer.classList.remove('hidden');
+                
+                try {
+                    const audioBuffer = await createAudioBuffer(binaryString);
+                    const wavBlob = audioBufferToWav(audioBuffer);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    
+                    speechDownloadLink.href = audioUrl;
+                    speechDownloadLink.download = 'fala_binaria.wav';
+                    speechDownloadContainer.classList.remove('hidden');
+                    
+                    speechMessage.textContent = 'Conversão completa! O áudio binário já pode ser baixado.';
+                } catch (error) {
+                    console.error('Erro ao gerar áudio binário:', error);
+                    speechMessage.textContent = 'Conversão completa, mas ocorreu um erro ao gerar o áudio para download.';
+                }
+            }
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Erro de reconhecimento de fala:', event.error);
+            speechStatus.textContent = `Erro: ${event.error}`;
+        };
+        
+    </script>
+</body>
+</html>
