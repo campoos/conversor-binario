@@ -484,11 +484,15 @@
                     const wavBlob = audioBufferToWav(audioBuffer);
                     const audioUrl = URL.createObjectURL(wavBlob);
                     
+                    // Adiciona a funcionalidade de reprodução automática
+                    const audioPlayer = new Audio(audioUrl);
+                    audioPlayer.play();
+
                     speechDownloadLink.href = audioUrl;
                     speechDownloadLink.download = 'fala_binaria.wav';
                     speechDownloadContainer.classList.remove('hidden');
                     
-                    speechMessage.textContent = 'Conversão completa! O áudio binário já pode ser baixado.';
+                    speechMessage.textContent = 'Conversão completa! O áudio binário foi reproduzido e já pode ser baixado.';
                 } catch (error) {
                     console.error('Erro ao gerar áudio binário:', error);
                     speechMessage.textContent = 'Conversão completa, mas ocorreu um erro ao gerar o áudio para download.';
